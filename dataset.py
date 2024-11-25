@@ -81,6 +81,7 @@ if __name__ == "__main__":
         #         print("NONE")
         #     else:
         #         print(f"Shape: {item.shape}")
+        #         print(f"Type: {item.dtype}")
         # plt.imshow(batch[0, 64,], cmap='gray')
         # plt.savefig(f'/cim/ehoney/ecse626proj/test{i}.png')
 
