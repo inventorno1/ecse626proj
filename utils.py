@@ -5,6 +5,7 @@ import random
 import torch
 import csv
 import os
+import matplotlib.pyplot as plt
 
 def load_from_lz4(path):
     with lz4.frame.open(path, 'rb') as f:
@@ -92,5 +93,38 @@ def load_trained_model(model, ckpt_path):
     epoch = checkpoint['epoch']
     model.load_state_dict(checkpoint['model_sd'])
     print(f'Checkpoint loaded from epoch {epoch + 1}.')
+
+    return None
+
+
+def plot_batch_slices(input_tensor, batch_size, save_path=None, slices=8):
+
+    # Create a grid of subplots with rows for batches and columns for channels
+    fig, axes = plt.subplots(batch_size, slices, figsize=(slices * 2, batch_size * 2))
+
+    # Determine the global min and max values for the color scale
+    vmin = input_tensor.min().item()
+    vmax = input_tensor.max().item()
+
+    # Loop through each batch and channel to plot
+    for b in range(batch_size):
+        for c in range(slices):
+            ax = axes[b, c] if batch_size > 1 else axes[c]  # Handle 1D subplot case
+            im = ax.imshow(input_tensor[b, c].cpu(), cmap='gray', vmin=vmin, vmax=vmax)
+            ax.axis('off')  # Optional: Remove axis labels for cleaner visualization
+            if b == 0:
+                ax.set_title(f'Slices {c+1}')  # Set channel title on the first row
+
+    # Add a universal colorbar
+    cbar_ax = fig.add_axes([0.92, 0.15, 0.02, 0.7])  # [left, bottom, width, height]
+    fig.colorbar(im, cax=cbar_ax, label='Intensity')
+
+    # Add a global title or adjust layout
+    # plt.suptitle('Batch and Channel Visualization with Universal Colorbar', fontsize=16)
+    plt.tight_layout(rect=[0, 0, 0.9, 1])  # Leave space for the colorbar
+    if save_path is None:
+        plt.show()
+    else:
+        plt.savefig(save_path)
 
     return None
