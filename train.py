@@ -33,7 +33,7 @@ model = UNet2DConditionModel(
     mid_block_type=None,
     up_block_types=("CrossAttnUpBlock2D", "UpBlock2D"),
     # not sure about what the lower arguments do
-    block_out_channels=(256, 512),
+    block_out_channels=(256, 512), #start with 64? no deeper than 1024
     layers_per_block=2, #default
     cross_attention_dim=256, # ~concat one-hot encodings of condition and target slices~ NO now instead just one 128 vector with labels 0,1,2
     attention_head_dim=8, #default
@@ -53,7 +53,7 @@ print("---------------------------------------------------")
 
 data_dir = "/cim/data/adni_class_pred_1x1x1_v1/ADNI"
 train_dataset = ADNIDataset(data_dir)
-train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4) # CHANGE to NUM_WORKERS=4
 
 for epoch in range(epoch_start, epochs):
     print(f"Beginning Epoch {epoch + 1}...")
@@ -63,7 +63,7 @@ for epoch in range(epoch_start, epochs):
     model.train()
     for step, batch in enumerate(train_dataloader):
 
-        batch = batch.to("cuda:0")
+        batch = batch.to(device)
         # print(step, batch.shape)
 
         input_tensor = torch.zeros(batch_size, 16, 128, 128, device=device)

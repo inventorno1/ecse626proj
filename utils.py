@@ -82,6 +82,15 @@ def load_or_initialize_training(model, optimizer, latest_ckpt_path):
         epoch_start = checkpoint['epoch'] + 1
         model.load_state_dict(checkpoint['model_sd'])
         optimizer.load_state_dict(checkpoint['optim_sd'])
-        print(f'Checkpoint loaded from epoch {epoch_start - 1}. Will continue training from epoch {epoch_start}.')
+        print(f'Checkpoint loaded from epoch {epoch_start - 1 + 1}. Will continue training from epoch {epoch_start + 1}.')
 
     return epoch_start
+
+def load_trained_model(model, ckpt_path):
+
+    checkpoint = torch.load(ckpt_path)
+    epoch = checkpoint['epoch']
+    model.load_state_dict(checkpoint['model_sd'])
+    print(f'Checkpoint loaded from epoch {epoch + 1}.')
+
+    return None
