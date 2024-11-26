@@ -59,7 +59,78 @@ class ADNIDataset(Dataset):
         # print(f"Last part: {s8-s7}")
 
         return target_slices, condition_slices, indices_encoding
+
+class ADNIDatasetSingleSlice(Dataset):
+
+    def __init__(self, data_dir, sample_full_brain=False):
+        self.data_dir = data_dir # this is now directory of preprocessed brain MRIs
+        self.subject_list = os.listdir(data_dir) # this is now a list of files rather than directories
+        self.sample_full_brain = sample_full_brain
+
+    def __len__(self):
+        return len(self.subject_list)
     
+    def __getitem__(self, idx):
+
+        subject = self.subject_list[idx]
+        subject_data_path = os.path.join(self.data_dir, subject)
+        assert os.path.isfile(subject_data_path)
+
+        # print(subject_data_path)
+        # s1 = time.time()
+        resized_brain_data = np.load(subject_data_path)
+        # s2 = time.time()
+        # print(f"Data loading time: {s2-s1}")
+        # print(resized_brain_data.shape, type(resized_brain_data))
+
+        if self.sample_full_brain:
+            return resized_brain_data
+        
+        target_slices = resized_brain_data[65:66]
+        condition_slices = resized_brain_data[64:65]
+
+        return target_slices, condition_slices
+
+class ADNIDatasetSlicesInOrder(Dataset):
+
+    def __init__(self, data_dir, n=8, sample_full_brain=False):
+        self.data_dir = data_dir # this is now directory of preprocessed brain MRIs
+        self.subject_list = os.listdir(data_dir) # this is now a list of files rather than directories
+        self.sample_full_brain = sample_full_brain
+        self.slices_at_once = n
+
+    def __len__(self):
+        return len(self.subject_list)
+    
+    def __getitem__(self, idx):
+
+        subject = self.subject_list[idx]
+        subject_data_path = os.path.join(self.data_dir, subject)
+        assert os.path.isfile(subject_data_path)
+
+        # print(subject_data_path)
+        # s1 = time.time()
+        resized_brain_data = np.load(subject_data_path)
+        # s2 = time.time()
+        # print(f"Data loading time: {s2-s1}")
+        # print(resized_brain_data.shape, type(resized_brain_data))
+
+        if self.sample_full_brain:
+            return resized_brain_data
+        
+        first_target_slice = np.random.choice(np.arange(0, 128, self.slices_at_once))
+
+        target_slices = resized_brain_data[first_target_slice:first_target_slice + self.slices_at_once]
+        if first_target_slice > 0:
+            condition_slices = resized_brain_data[first_target_slice - self.slices_at_once:first_target_slice]
+        else:
+            condition_slices = np.zeros((self.slices_at_once, 128, 128))
+
+        # condition_slices = resized_brain_data[first_slice:first_slice+self.slices_at_once]
+        # target_slices = resized_brain_data[first_slice+self.slices_at_once:first_slice+2*self.slices_at_once]
+
+        return target_slices, condition_slices
+
 if __name__ == "__main__":
 
     import matplotlib.pyplot as plt
