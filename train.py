@@ -53,7 +53,7 @@ print("Searching for checkpoint...")
 epoch_start = load_or_initialize_training(model, optimizer, latest_ckpt_path)
 print("---------------------------------------------------")
 
-data_dir = "/cim/data/adni_class_pred_1x1x1_v1/ADNI"
+data_dir = "/cim/ehoney/ecse626proj/preprocessed_data"
 train_dataset = ADNIDataset(data_dir)
 train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=0) # CHANGE to NUM_WORKERS=4
 
