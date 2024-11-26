@@ -7,6 +7,7 @@ from dataset import ADNIDataset
 from torch.utils.data import DataLoader
 from utils import sample_16_indices, indices_to_mask, save_tloss_csv, load_or_initialize_training
 import numpy as np
+import time
 
 # from torch.optim.lr_scheduler import CosineAnnealingLR
 
@@ -14,7 +15,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 epochs = 1500 # should be 1736.1 to match paper
 backup_interval = 5
 lr = 1e-4
-batch_size = 3
+batch_size = 4
 num_train_timesteps = 256
 loss_fn = torch.nn.MSELoss()
 
@@ -22,6 +23,7 @@ out_dir = "/cim/ehoney/ecse626proj/experiment2"
 train_loss_path = os.path.join(out_dir, "train_loss.csv")
 latest_ckpt_path = os.path.join(out_dir, "latest_ckpt.pth.tar")
 backup_ckpts_dir = os.path.join(out_dir, 'backup_ckpts')
+os.makedirs(backup_ckpts_dir, exist_ok=True)
 
 print("---------------------------------------------------")
 print("Initialising model...")
@@ -53,7 +55,7 @@ print("---------------------------------------------------")
 
 data_dir = "/cim/data/adni_class_pred_1x1x1_v1/ADNI"
 train_dataset = ADNIDataset(data_dir)
-train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4) # CHANGE to NUM_WORKERS=4
+train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=0) # CHANGE to NUM_WORKERS=4
 
 for epoch in range(epoch_start, epochs):
     print(f"Beginning Epoch {epoch + 1}...")
@@ -61,8 +63,10 @@ for epoch in range(epoch_start, epochs):
     losses_over_epoch = []
 
     model.train()
+    # s_time = time.time()
     for step, batch in enumerate(train_dataloader):
-
+        t_time = time.time()
+        # print(time.time()-s_time)
         target_slices, condition_slices, indices_encoding = batch
 
         target_slices = target_slices.to(device)
@@ -75,7 +79,7 @@ for epoch in range(epoch_start, epochs):
         # print(f"Noise dtype: {noise.dtype}; timesteps dtype: {timesteps.dtype}")
         noised_target_slices = noise_scheduler.add_noise(target_slices, noise, timesteps)
         # print(f"noised_target_slices dtype: {noised_target_slices.dtype}")
-        
+
         # Then I need to mask out noisy images to only include condition slices i.e. non-condition slices should be zero - NOT RIGHT, see below
         # need to noise the target slices and feed in the condition slices as condition, along with the index encodings for the attention layer
         
@@ -105,6 +109,8 @@ for epoch in range(epoch_start, epochs):
         print(f"Epoch {epoch + 1}, Step {step + 1}, Loss: {loss.item()}")
         losses_over_epoch.append(loss.detach().cpu())
         # break # for debugging, just use one batch
+        # s_time = time.time()
+        print(time.time()-t_time)
 
     average_epoch_loss = np.mean(losses_over_epoch)
     save_tloss_csv(train_loss_path, epoch+1, average_epoch_loss)
