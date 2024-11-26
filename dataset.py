@@ -4,12 +4,13 @@ import torch
 import os
 from skimage.transform import resize
 import time
+import numpy as np
 
 class ADNIDataset(Dataset):
 
     def __init__(self, data_dir, sample_full_brain=False):
-        self.data_dir = data_dir
-        self.subject_list = os.listdir(data_dir)
+        self.data_dir = data_dir # this is now directory of preprocessed brain MRIs
+        self.subject_list = os.listdir(data_dir) # this is now a list of files rather than directories
         self.sample_full_brain = sample_full_brain
 
     def __len__(self):
@@ -18,23 +19,15 @@ class ADNIDataset(Dataset):
     def __getitem__(self, idx):
 
         subject = self.subject_list[idx]
-        assert os.path.isdir(os.path.join(self.data_dir, subject))
+        subject_data_path = os.path.join(self.data_dir, subject)
+        assert os.path.isfile(subject_data_path)
 
-        brain_path = os.path.join(self.data_dir, subject, 't1p.npy.lz4')
-        mask_path = os.path.join(self.data_dir, subject, 'brainmask.npy.lz4')
-        s1 = time.time()
-        brain_data = load_from_lz4(brain_path)
-        mask_data = load_from_lz4(mask_path)
-        s2 = time.time()
-        print("Data loading time: ", s2-s1)
-        assert(brain_data.shape == mask_data.shape == (176, 224, 176))
-
-        s3 = time.time()
-        masked_brain_data = mask_data * brain_data
-        normalised_brain_data = normalise_intensity(masked_brain_data)
-        resized_brain_data = resize(normalised_brain_data, (128, 128, 128), order=3, mode='constant', anti_aliasing=True)
-        s4 = time.time()
-        print(f"Procesing time: {s4-s3}")
+        # print(subject_data_path)
+        # s1 = time.time()
+        resized_brain_data = np.load(subject_data_path)
+        # s2 = time.time()
+        # print(f"Data loading time: {s2-s1}")
+        # print(resized_brain_data.shape, type(resized_brain_data))
 
         if self.sample_full_brain:
             return resized_brain_data
@@ -42,12 +35,12 @@ class ADNIDataset(Dataset):
         # Above is simply loading, normalising and resizing the data
         # Below is sampling specific target and condition slices
 
-        s5 = time.time()
+        # s5 = time.time()
         target_indices, condition_indices, indices_encoding = sample_16_indices()
-        s6 = time.time()
-        print(f"Sampling time: {s6-s5}")
+        # s6 = time.time()
+        # print(f"Sampling time: {s6-s5}")
 
-        s7 = time.time()
+        # s7 = time.time()
         target_mask = indices_to_mask(target_indices)
         condition_mask = indices_to_mask(condition_indices)
 
@@ -62,8 +55,8 @@ class ADNIDataset(Dataset):
 
         indices_encoding = torch.from_numpy(indices_encoding)
 
-        s8 = time.time()
-        print(f"Last part: {s8-s7}")
+        # s8 = time.time()
+        # print(f"Last part: {s8-s7}")
 
         return target_slices, condition_slices, indices_encoding
     
@@ -73,7 +66,7 @@ if __name__ == "__main__":
     from torch.utils.data import DataLoader
     from utils import plot_batch_slices
 
-    data_dir = "/cim/data/adni_class_pred_1x1x1_v1/ADNI"
+    data_dir = "/cim/ehoney/ecse626proj/preprocessed_data"
     dataset = ADNIDataset(data_dir)
 
     batch_size=2
