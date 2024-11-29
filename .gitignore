@@ -14,6 +14,7 @@ experiments/*/latest_ckpt.pth.tar
 experiments/*/train_loss.csv
 
 preprocessed_data/
+preprocessed_data_64/
 
 *.pth.tar
 .ipynb_checkpoints/

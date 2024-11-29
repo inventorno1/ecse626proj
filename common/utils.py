@@ -147,3 +147,16 @@ def plot_batch_slices(input_tensor, batch_size, save_path=None, slices=8, vmin=0
         plt.savefig(save_path)
 
     return None
+
+
+def plot_brain_3_views(brain_data):
+
+    x, y, z = brain_data.shape
+    assert (x == y == z)
+
+    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+    for i, axis in enumerate([0,1,2]):
+        axes[i].imshow(brain_data.take(x//2, axis=i), cmap='gray')
+        axes[i].axis('off')
+    plt.tight_layout()
+    plt.show()
