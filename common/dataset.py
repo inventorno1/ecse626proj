@@ -1,4 +1,4 @@
-from utils import load_from_lz4, normalise_intensity, sample_16_indices, indices_to_mask
+from common.utils import load_from_lz4, normalise_intensity, sample_16_indices, indices_to_mask
 from torch.utils.data import Dataset
 import torch
 import os

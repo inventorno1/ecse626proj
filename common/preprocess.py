@@ -1,4 +1,4 @@
-from utils import load_from_lz4, normalise_intensity
+from common.utils import load_from_lz4, normalise_intensity
 import os
 from skimage.transform import resize
 import numpy as np

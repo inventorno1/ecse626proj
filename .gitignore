@@ -13,4 +13,9 @@ experiments/*/*.png
 experiments/*/latest_ckpt.pth.tar
 experiments/*/train_loss.csv
 
+preprocessed_data/
+
 *.pth.tar
+.ipynb_checkpoints/
+*.png
+*.egg-info/

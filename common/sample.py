@@ -1,5 +1,5 @@
 import torch
-from utils import plot_batch_slices
+from common.utils import plot_batch_slices
 
 def sample_next_slices(noised_target_slices, condition_slices, model, noise_scheduler, batch_size, device, encoder_hidden_states=None, verbose=False):
 
