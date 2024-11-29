@@ -2,10 +2,10 @@ import os
 
 if __name__ == '__main__':
 
-    backup_interval = 5
-    last_backup_ckpt = 145
+    backup_interval = 10
+    last_backup_ckpt = 1070
     new_backup_interval = 50
-    out_dir = "/cim/ehoney/ecse626proj/experiment1"
+    out_dir = "/cim/ehoney/ecse626proj/experiment6"
     backup_ckpts_dir = os.path.join(out_dir, 'backup_ckpts')
 
     for epoch in range(backup_interval, last_backup_ckpt+backup_interval, backup_interval):

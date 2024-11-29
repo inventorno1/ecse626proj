@@ -93,11 +93,14 @@ class ADNIDatasetSingleSlice(Dataset):
 
 class ADNIDatasetSlicesInOrder(Dataset):
 
-    def __init__(self, data_dir, n=8, sample_full_brain=False):
+    def __init__(self, data_dir, n=8, sample_full_brain=False, return_target_slice_index=False, empty_condition_value=0, symmetric_normalisation=False):
         self.data_dir = data_dir # this is now directory of preprocessed brain MRIs
         self.subject_list = os.listdir(data_dir) # this is now a list of files rather than directories
         self.sample_full_brain = sample_full_brain
         self.slices_at_once = n
+        self.return_target_slice_index = return_target_slice_index
+        self.empty_condition_value = empty_condition_value
+        self.symmetric_normalisation = symmetric_normalisation
 
     def __len__(self):
         return len(self.subject_list)
@@ -114,6 +117,8 @@ class ADNIDatasetSlicesInOrder(Dataset):
         # s2 = time.time()
         # print(f"Data loading time: {s2-s1}")
         # print(resized_brain_data.shape, type(resized_brain_data))
+        if self.symmetric_normalisation:
+            resized_brain_data = (resized_brain_data * 2) - 1
 
         if self.sample_full_brain:
             return resized_brain_data
@@ -124,10 +129,13 @@ class ADNIDatasetSlicesInOrder(Dataset):
         if first_target_slice > 0:
             condition_slices = resized_brain_data[first_target_slice - self.slices_at_once:first_target_slice]
         else:
-            condition_slices = np.zeros((self.slices_at_once, 128, 128))
+            condition_slices = np.zeros((self.slices_at_once, 128, 128)) + self.empty_condition_value
 
         # condition_slices = resized_brain_data[first_slice:first_slice+self.slices_at_once]
         # target_slices = resized_brain_data[first_slice+self.slices_at_once:first_slice+2*self.slices_at_once]
+
+        if self.return_target_slice_index:
+            return target_slices, condition_slices, first_target_slice
 
         return target_slices, condition_slices
 
@@ -138,7 +146,7 @@ if __name__ == "__main__":
     from utils import plot_batch_slices
 
     data_dir = "/cim/ehoney/ecse626proj/preprocessed_data"
-    dataset = ADNIDataset(data_dir)
+    dataset = ADNIDatasetSlicesInOrder(data_dir, return_target_slice_index=True, symmetric_normalisation=True)
 
     batch_size=2
 
@@ -165,11 +173,15 @@ if __name__ == "__main__":
         # plt.imshow(batch[0, 64,], cmap='gray')
         # plt.savefig(f'/cim/ehoney/ecse626proj/test{i}.png')
 
-        target_slices, condition_slices, indices_encoding = batch
+        target_slices, condition_slices, first_target_slice = batch
         # print(indices_encoding)
 
         # plot_batch_slices(target_slices, batch_size=batch_size, save_path=f'/cim/ehoney/ecse626proj/target{i}.png')
         # plot_batch_slices(condition_slices, batch_size=batch_size, save_path=f'/cim/ehoney/ecse626proj/condition{i}.png')
 
+        print(target_slices.min(), target_slices.max())
+        print(condition_slices.min(), condition_slices.max())
+        print(first_target_slice)
+         
         if i == 2:  # Check the first three batches
             break

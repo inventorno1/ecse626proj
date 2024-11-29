@@ -13,7 +13,7 @@ import time
 
 device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 epochs = 1500 # should be 1736.1 to match paper
-backup_interval = 10
+backup_interval = 50
 lr = 1e-4
 batch_size = 4
 num_train_timesteps = 256

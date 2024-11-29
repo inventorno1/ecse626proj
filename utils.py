@@ -20,6 +20,16 @@ def normalise_intensity(img, lower=1, upper=99):
     normalised_img = (clipped_img - lower_bound) / (upper_bound - lower_bound)
     return normalised_img
 
+def normalise_intensity_per_slice(batch_of_slices):
+    # Do I still need to clip here??
+
+    # batch_of_slices has shape (B, C, 128, 128)
+    # below have shape (B,C, 1, 1)
+    min_vals = torch.amin(batch_of_slices, dim=(2,3), keepdim=True)
+    max_vals = torch.amax(batch_of_slices, dim=(2,3), keepdim=True)
+    normalised_batch_of_slices = (batch_of_slices - min_vals) / (max_vals - min_vals + 1e-8)
+    return normalised_batch_of_slices
+
 def sample_indices(max_slices=20, num_slices=128):
 
     total_indices = random.randint(1, max_slices)
@@ -96,15 +106,24 @@ def load_trained_model(model, ckpt_path):
 
     return None
 
+def load_trained_embedder(embedder, ckpt_path):
 
-def plot_batch_slices(input_tensor, batch_size, save_path=None, slices=8):
+    checkpoint = torch.load(ckpt_path)
+    epoch = checkpoint['epoch']
+    embedder.load_state_dict(checkpoint['embedder_sd'])
+    print(f'Checkpoint loaded from epoch {epoch + 1}.')
+
+    return None
+
+
+def plot_batch_slices(input_tensor, batch_size, save_path=None, slices=8, vmin=0, vmax=1):
 
     # Create a grid of subplots with rows for batches and columns for channels
     fig, axes = plt.subplots(batch_size, slices, figsize=(slices * 2, batch_size * 2))
 
-    # Determine the global min and max values for the color scale
-    vmin = input_tensor.min().item()
-    vmax = input_tensor.max().item()
+    # # Determine the global min and max values for the color scale
+    # vmin = input_tensor.min().item()
+    # vmax = input_tensor.max().item()
 
     # Loop through each batch and channel to plot
     for b in range(batch_size):
