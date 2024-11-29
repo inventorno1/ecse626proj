@@ -1,0 +1,16 @@
+# Ignore Python bytecode files
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore environment and virtual environment files
+venv/
+.env/
+
+# Ignore model checkpoints and experiment outputs
+experiments/*/backup_ckpts/
+experiments/*/*.png
+experiments/*/latest_ckpt.pth.tar
+experiments/*/train_loss.csv
+
+*.pth.tar
