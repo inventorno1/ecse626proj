@@ -20,3 +20,5 @@ preprocessed_data_64/
 .ipynb_checkpoints/
 *.png
 *.egg-info/
+round2/MedNIST/
+round2/MedNIST.tar.gz
