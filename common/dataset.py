@@ -170,6 +170,36 @@ class ADNIDatasetMiddleSlices(Dataset):
         slice_index = random.randint(self.min_slice, self.max_slice)
         return torch.from_numpy(resized_brain_data[slice_index:slice_index+1])
 
+class ADNIDatasetSliceAndIndex(Dataset):
+
+    def __init__(self, data_dir, min_slice=16, max_slice=47):
+        self.data_dir = data_dir # this is now directory of preprocessed brain MRIs
+        self.subject_list = os.listdir(data_dir) # this is now a list of files rather than directories
+        self.min_slice = min_slice
+        self.max_slice = max_slice
+
+    def __len__(self):
+        return len(self.subject_list)
+    
+    def __getitem__(self, idx):
+
+        subject = self.subject_list[idx]
+        subject_data_path = os.path.join(self.data_dir, subject)
+        assert os.path.isfile(subject_data_path)
+
+        # print(subject_data_path)
+        # s1 = time.time()
+        resized_brain_data = np.load(subject_data_path)
+        # s2 = time.time()
+        # print(f"Data loading time: {s2-s1}")
+        # print(resized_brain_data.shape, type(resized_brain_data))
+
+        # Above is simply loading, normalising and resizing the data
+        # Below is sampling specific target and condition slices
+
+        slice_index = random.randint(self.min_slice, self.max_slice)
+        return slice_index, torch.from_numpy(resized_brain_data[slice_index:slice_index+1])
+
 
 if __name__ == "__main__":
 
