@@ -22,3 +22,4 @@ preprocessed_data_64/
 *.egg-info/
 round2/MedNIST/
 round2/MedNIST.tar.gz
+*.npy

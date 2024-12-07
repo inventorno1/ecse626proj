@@ -82,11 +82,13 @@ def save_tloss_csv(pathname, epoch, tloss):
             writer.writerow(['Epoch', 'Training Loss'])
         writer.writerow([epoch, tloss])
 
-def load_or_initialize_training(model, optimizer, latest_ckpt_path):
+def load_or_initialize_training(model, optimizer, latest_ckpt_path, get_best_loss=False):
 
     if not os.path.exists(latest_ckpt_path):
         epoch_start = 0
         print('No training checkpoint found. Will start training from scratch.')
+        if get_best_loss:
+            return epoch_start, float('inf')
     else:
         print('Training checkpoint found. Loading checkpoint...')
         checkpoint = torch.load(latest_ckpt_path)
@@ -94,6 +96,10 @@ def load_or_initialize_training(model, optimizer, latest_ckpt_path):
         model.load_state_dict(checkpoint['model_sd'])
         optimizer.load_state_dict(checkpoint['optim_sd'])
         print(f'Checkpoint loaded from epoch {epoch_start - 1 + 1}. Will continue training from epoch {epoch_start + 1}.')
+
+        if get_best_loss:
+            best_loss = checkpoint['best_loss']
+            return epoch_start, best_loss
 
     return epoch_start
 
@@ -104,7 +110,7 @@ def load_trained_model(model, ckpt_path):
     model.load_state_dict(checkpoint['model_sd'])
     print(f'Checkpoint loaded from epoch {epoch + 1}.')
 
-    return None
+    return epoch
 
 def load_trained_embedder(embedder, ckpt_path):
 
@@ -149,14 +155,16 @@ def plot_batch_slices(input_tensor, batch_size, save_path=None, slices=8, vmin=0
     return None
 
 
-def plot_brain_3_views(brain_data):
+def plot_brain_3_views(brain_data, save_path=None):
 
     x, y, z = brain_data.shape
     assert (x == y == z)
 
-    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+    fig, axes = plt.subplots(1, 3, figsize=(6, 2))
     for i, axis in enumerate([0,1,2]):
         axes[i].imshow(brain_data.take(x//2, axis=i), cmap='gray')
         axes[i].axis('off')
     plt.tight_layout()
+    if save_path:
+        plt.savefig(save_path)
     plt.show()

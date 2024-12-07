@@ -94,7 +94,7 @@ class ADNIDatasetSingleSlice(Dataset):
 
 class ADNIDatasetSlicesInOrder(Dataset):
 
-    def __init__(self, data_dir, n=8, sample_full_brain=False, return_target_slice_index=False, empty_condition_value=0, symmetric_normalisation=False):
+    def __init__(self, data_dir, n=8, sample_full_brain=False, return_target_slice_index=False, empty_condition_value=0, symmetric_normalisation=False, data_size=128, sample_range=None):
         self.data_dir = data_dir # this is now directory of preprocessed brain MRIs
         self.subject_list = os.listdir(data_dir) # this is now a list of files rather than directories
         self.sample_full_brain = sample_full_brain
@@ -102,6 +102,8 @@ class ADNIDatasetSlicesInOrder(Dataset):
         self.return_target_slice_index = return_target_slice_index
         self.empty_condition_value = empty_condition_value
         self.symmetric_normalisation = symmetric_normalisation
+        self.data_size = data_size
+        self.sample_range = sample_range
 
     def __len__(self):
         return len(self.subject_list)
@@ -124,13 +126,20 @@ class ADNIDatasetSlicesInOrder(Dataset):
         if self.sample_full_brain:
             return resized_brain_data
         
-        first_target_slice = np.random.choice(np.arange(0, 128, self.slices_at_once))
+        if self.sample_range == 'middle':
+            start = self.data_size // 4
+            end = 3 * self.data_size // 4
+        else:
+            start = 0
+            end = self.data_size
+        
+        first_target_slice = np.random.choice(np.arange(start, end, self.slices_at_once))
 
         target_slices = resized_brain_data[first_target_slice:first_target_slice + self.slices_at_once]
         if first_target_slice > 0:
             condition_slices = resized_brain_data[first_target_slice - self.slices_at_once:first_target_slice]
         else:
-            condition_slices = np.zeros((self.slices_at_once, 128, 128)) + self.empty_condition_value
+            condition_slices = np.zeros((self.slices_at_once, self.data_size, self.data_size)) + self.empty_condition_value
 
         # condition_slices = resized_brain_data[first_slice:first_slice+self.slices_at_once]
         # target_slices = resized_brain_data[first_slice+self.slices_at_once:first_slice+2*self.slices_at_once]
