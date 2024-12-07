@@ -15,6 +15,10 @@ experiments/*/train_loss.csv
 
 preprocessed_data/
 preprocessed_data_64/
+round2/
+
+experiments.txt
+model.py
 
 *.pth.tar
 .ipynb_checkpoints/
